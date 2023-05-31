@@ -1,4 +1,4 @@
-import 'package:prototype_pattern/menu_prototype.dart';
+import 'menu_prototype.dart';
 
 class Menu extends MenuPrototype {
   String name;
