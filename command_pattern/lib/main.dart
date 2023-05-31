@@ -1,68 +1,74 @@
+import 'package:command_pattern/light_off_command.dart';
+import 'package:command_pattern/provider/light.dart';
+import 'package:command_pattern/remote_control.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'enum/light_state.dart';
+import 'light_on_command.dart';
+
 void main() {
-      runApp(MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('Command Pattern 예제')),
-        body: Center(child: TextChanger()),
+    return ChangeNotifierProvider(
+      create: (context) => Light(),
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(title: Text('Light Control')),
+          body: LightControl(),
+        ),
       ),
     );
   }
 }
 
-class TextChanger extends StatefulWidget {
-  @override
-  _TextChangerState createState() => _TextChangerState();
-}
-
-class _TextChangerState extends State<TextChanger> {
-  Color _textColor = Colors.black;
-  double _textSize = 24;
-
-      // 리모컨 역할 실행
-  final RemoteControl remote = RemoteControl();
-
-  void _changeTextColor() {
-    setState(() {
-      _textColor = _textColor == Colors.black ? Colors.blue : Colors.black;
-    });
-  }
-
-  void _changeTextSize() {
-    setState(() {
-      _textSize = _textSize == 24 ? 32 : 24;
-    });
-  }
+class LightControl extends StatelessWidget {
+  final RemoteControl remoteControl = RemoteControl();
 
   @override
   Widget build(BuildContext context) {
+    Light light = context.read<Light>().state as Light;
+    LightOnCommand lightOn = LightOnCommand(light);
+    LightOffCommand lightOff = LightOffCommand(light);
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Hello, Command Pattern!',
-          style: TextStyle(color: _textColor, fontSize: _textSize),
+          'The light is ${light.state == LightState.on ? "ON" : "OFF"}',
+          style: TextStyle(fontSize: 24),
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                remoteControl.setCommand(lightOn);
+                remoteControl.pressButton();
+              },
+              child: Text('Turn ON'),
+            ),
+            SizedBox(width: 20),
+            ElevatedButton(
+              onPressed: () {
+                remoteControl.setCommand(lightOff);
+                remoteControl.pressButton();
+              },
+              child: Text('Turn OFF'),
+            ),
+          ],
         ),
         SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
-            remote.setCommand(ChangeTextColorCommand(_changeTextColor));
-            remote.pressButton();
+            remoteControl.pressUndo();
           },
-          child: Text('Change Text Color'),
-        ),
-        SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () {
-            remote.setCommand(ChangeTextSizeCommand(_changeTextSize));
-            remote.pressButton();
-          },
-          child: Text('Change Text Size'),
+          child: Text('UNDO'),
         ),
       ],
     );

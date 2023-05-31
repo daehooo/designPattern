@@ -1,0 +1,1 @@
+enum LightState { on, off }
